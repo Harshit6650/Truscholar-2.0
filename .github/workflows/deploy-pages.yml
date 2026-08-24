@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Lets you re-run a deploy from the Actions tab without a new commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push supersedes an in-flight run.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build static export
+        env:
+          # Switches next.config.ts to output: 'export'.
+          STATIC_EXPORT: '1'
+          # A project page is served from /<repo>. basePath and assetPrefix
+          # must match, or every asset 404s.
+          PAGES_BASE_PATH: /Truscholar-2.0
+          NEXT_PUBLIC_SITE_URL: https://harshit6650.github.io/Truscholar-2.0
+        run: npm run build
+
+      # Without this, GitHub's Jekyll step discards any directory starting with
+      # an underscore — which is the entire _next asset folder.
+      - name: Disable Jekyll
+        run: touch out/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

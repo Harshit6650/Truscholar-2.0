@@ -1,146 +1,97 @@
 # Deployment
 
-## Where things stand
+The site deploys to **GitHub Pages** as a static export, via
+`.github/workflows/deploy-pages.yml`.
 
-The repository is already on GitHub — `origin` is
-`https://github.com/Harshit6650/Truscholar-2.0.git`, and the remote `main`
-matches local. `node_modules/` and `.next/` are correctly ignored, and no real
-env file is committed (only `.env.example`).
+Target URL: `https://harshit6650.github.io/Truscholar-2.0/`
 
-So pushing works. What was missing is a **deployment target**.
+## One-time repository setup
 
-## Why GitHub Pages cannot host this app as-is
+The workflow cannot enable Pages by itself. In the repository:
 
-GitHub Pages serves static files. It has no Node runtime. This app uses server
-features, so a static export (`output: 'export'`) fails. Verified by running
-the export build and reading the errors:
+**Settings → Pages → Build and deployment → Source → GitHub Actions**
 
-| Blocker                                          | Build error                                                     |
-| ------------------------------------------------ | --------------------------------------------------------------- |
-| `src/app/api/health/route.ts`                     | `export const dynamic = "force-dynamic" … cannot be used with "output: export"` |
-| `src/app/api/v1/contact/route.ts`                 | Route handler POST — needs a server                             |
-| `src/server/actions/contact.ts`                   | `Server Actions are not supported with static export.`          |
-| `src/proxy.ts`                                    | Proxy/middleware is unsupported in a static export              |
-| `manifest.webmanifest`, `robots.txt`, `sitemap.xml` | Needed `export const dynamic = 'force-static'` — **now fixed**   |
+Until that is set, the workflow runs but the URL stays a 404.
 
-There is also a quieter consequence. `headers()` in `next.config.ts` is a
-no-op in an export:
-
-```
-⚠ Specified "headers" will not automatically work with "output: export"
-```
-
-Which means a Pages deployment ships with **no CSP, no HSTS, no
-X-Frame-Options, no Referrer-Policy** — every header in `next.config.ts` is
-sent by the Next server, and on Pages there is no server. For a credentialing
-product that is a meaningful downgrade, and it cannot be fixed from inside the
-repo: GitHub Pages does not let you set response headers at all.
-
-## Option A — a Node host (recommended)
-
-Keeps every feature, needs **no code changes**: the contact form, the API
-routes, the `/dashboard` auth gate and all the security headers keep working.
-
-Vercel, Netlify, Cloudflare, Render and Railway all deploy a Next.js app
-straight from a GitHub repo. For Vercel:
-
-1. Sign in to Vercel with the GitHub account that owns the repo.
-2. **Add New → Project**, import `Harshit6650/Truscholar-2.0`.
-3. Framework preset is detected as Next.js. Leave the build settings alone.
-4. Add the environment variables from `.env.example` — at minimum
-   `NEXT_PUBLIC_SITE_URL`, set to the deployment URL.
-5. Deploy. Every later push to `main` redeploys automatically.
-
-Nothing in this repo needs to change for this path.
-
-## Option B — GitHub Pages (reduced)
-
-Possible, but the server features have to go. The config already supports it:
+## How the build works
 
 ```bash
 STATIC_EXPORT=1 PAGES_BASE_PATH=/Truscholar-2.0 npm run build
 ```
 
-`STATIC_EXPORT=1` switches on `output: 'export'`, `trailingSlash` and
-`images.unoptimized`. `PAGES_BASE_PATH` sets `basePath`/`assetPrefix`, which a
-project page needs — served from `/<repo>`, every asset 404s without it. Both
-are inert in a normal build.
+- `STATIC_EXPORT=1` switches `next.config.ts` to `output: 'export'`, plus
+  `trailingSlash` (so `/about` resolves to `/about/index.html`) and
+  `images.unoptimized` (the image optimiser needs a server).
+- `PAGES_BASE_PATH` sets `basePath` and `assetPrefix`. A project page is served
+  from `/<repo>`, so without this every asset 404s.
 
-Before this builds, these must be removed or replaced:
+Both are inert when unset, so `npm run dev` and a normal `npm run build` are
+unchanged.
 
-- `src/app/api/` — both route handlers
-- `src/proxy.ts` — the `/dashboard` redirect gate becomes decorative, so the
-  dashboard would be publicly reachable
-- `src/server/actions/contact.ts` and the `useActionState` call in
-  `src/app/(marketing)/contact/contact-form.tsx` — **the contact form stops
-  working.** A static site has nowhere to post to; it would need a third-party
-  form endpoint (Formspree, Basin) or a `mailto:` fallback
+`manifest.webmanifest` and `robots.txt` prefix the base path by hand —
+Next does not rewrite strings inside those files, so a bare `/icon.svg` would
+404 on a project page.
 
-Then add a Pages workflow:
+The workflow also runs `touch out/.nojekyll`. Without it GitHub's Jekyll step
+discards every directory beginning with an underscore, which is the whole
+`_next` asset folder.
 
-```yaml
-name: Deploy to GitHub Pages
+## What was removed to make a static export possible
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+GitHub Pages has no Node runtime. These were deleted, each confirmed by a build
+error before removal:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+| Removed                    | Why                                                    |
+| -------------------------- | ------------------------------------------------------ |
+| `src/app/api/`             | Route handlers need a server                            |
+| `src/proxy.ts`             | Proxy/middleware unsupported in a static export         |
+| `src/server/actions/`      | `Server Actions are not supported with static export`   |
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
+Consequences, in plain terms:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-        env:
-          STATIC_EXPORT: '1'
-          PAGES_BASE_PATH: /Truscholar-2.0
-          NEXT_PUBLIC_SITE_URL: https://harshit6650.github.io/Truscholar-2.0
-      # Stops GitHub's Jekyll step from discarding the _next directory.
-      - run: touch out/.nojekyll
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: out
+- **The contact form no longer posts anywhere.** It now composes the enquiry
+  into a `mailto:` and hands it to the visitor's mail client. That works with
+  no server and no third-party dependency, but it is not a tracked form
+  submission.
+- **`/dashboard` is publicly reachable.** The redirect gate lived in
+  `proxy.ts`. The dashboard only renders placeholder figures, so nothing real
+  is exposed, but it is no longer gated. `robots.txt` disallows it; that is a
+  crawler hint, not access control.
+- **No security headers.** `headers()` in `next.config.ts` is a no-op in an
+  export — the build says so explicitly:
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - uses: actions/deploy-pages@v4
-```
+  ```
+  ⚠ rewrites, redirects, and headers are not applied when exporting
+  ```
 
-Then in the repo: **Settings → Pages → Source → GitHub Actions**.
+  So the deployed site has no CSP, no HSTS, no `X-Frame-Options` and no
+  `Referrer-Policy`. GitHub Pages provides no way to set response headers, so
+  this cannot be fixed from inside the repo.
+
+The validation, service and repository layers are still in `src/server/`,
+unused. They are the seam to restore server behaviour later.
+
+## Restoring full functionality
+
+Any Node-capable host runs this app with no code changes beyond putting back
+the three deleted paths. On Vercel: import the repo, add
+`NEXT_PUBLIC_SITE_URL`, deploy. The contact form, API routes, auth gate and
+security headers all work again, and `basePath` is not needed because the site
+is served from a domain root.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs typecheck, lint and build on every push and
 pull request to `main`, on the Node version in `.nvmrc`, installing from the
-committed lockfile with `npm ci`. This is independent of which host you pick.
+committed lockfile with `npm ci`.
 
-## Before any public deployment
+## Before this URL is shared
 
-The repository contains `docs/security.md`, which lists the security work not
-yet done (nonce-based CSP, rate limiting, real session verification). If this
-GitHub repository is public, that file is a public list of the gaps. Either
-make the repository private or move that checklist somewhere internal.
+The repository is **public**. Two things follow:
 
-The homepage also carries claims that need a compliance read before it is
-publicly reachable: the impact figures, "Trusted by 500+", and the CMMI Level 5
-/ ISO 27001 / SOC 2 Type II / granted patent statements.
+1. `docs/security.md` is a public list of security work not yet done on a
+   credentialing platform. Make the repository private, or move that checklist
+   somewhere internal.
+2. The homepage states CMMI Level 5, ISO/IEC 27001, SOC 2 Type II and a granted
+   patent, plus the impact figures and "Trusted by 500+". Those are now
+   publicly published claims and want a compliance read.

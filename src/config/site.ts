@@ -7,6 +7,8 @@ export const siteConfig = {
   description:
     'From first credential to first job. TruScholar helps institutions issue verified credentials, and learners turn them into resumes, guidance and real opportunities.',
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+  /** Sub-path the site is served from. A GitHub Pages project page uses /<repo>. */
+  basePath: process.env.PAGES_BASE_PATH ?? '',
   locale: 'en-IN',
   /** Browser UI colour. Dark matches the navy-tinted `--background` in globals.css. */
   themeColor: { light: '#ffffff', dark: '#0b1b3f' },

@@ -1,0 +1,246 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   DESIGN TOKENS
+   ---------------------------------------------------------------------------
+   Tailwind v4 is CSS-first, so these live here rather than in
+   tailwind.config.js (which v4 does not read unless explicitly opted into via
+   @config). The token NAMES and VALUES are exactly as specified, so
+   `bg-navy-600`, `text-ink-muted`, `rounded-card` etc. all resolve.
+
+   Usage rules baked into the palette:
+   - `primary` (#E2333A) is for CTAs only.
+   - `verified` (#12A150) is for verified states only.
+
+   Contrast note, measured: white on #E2333A is 4.40:1. That clears the 3:1
+   bar for large text and UI components but sits just under the 4.5:1 AA bar
+   for body-sized text. Button labels use the display font at 17px, so this is
+   a near-miss rather than a pass — see the note in the build summary for the
+   two one-line remedies.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Brand */
+  --color-navy: #0b1b3f;
+  --color-navy-800: #132a5c;
+  --color-navy-600: #26417f;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f6fb;
+  --color-surface-border: #e2e8f0;
+
+  --color-ink: #0f172a;
+  --color-ink-muted: #5a6785;
+
+  --color-primary: #e2333a;
+  --color-verified: #12a150;
+
+  /* Typography */
+  --font-display: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --text-h1: clamp(2.5rem, 5vw, 4rem);
+  --text-h1--line-height: 1.15;
+  --text-h2: clamp(2rem, 3.5vw, 3rem);
+  --text-h2--line-height: 1.15;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.15;
+  --text-h4: 1.125rem;
+  --text-h4--line-height: 1.15;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.6;
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.6;
+  /* Placeholder captions only. Several placeholder boxes are under 80px tall,
+     so their captions need a size below `small` to fit without spilling. */
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.4;
+
+  /* Radii */
+  --radius-card: 20px;
+  --radius-tile: 14px;
+  --radius-btn: 10px;
+
+  /* Widths. `--container-*` drives the max-w-* utilities in v4. */
+  --container-page: 1200px;
+  --container-lede: 620px;
+
+  /* Bento card heights and the journey fragment cap, as tokens rather than
+     arbitrary utility values. */
+  --spacing-bento-tall: 520px;
+  --spacing-bento-mid: 340px;
+  --spacing-bento-short: 220px;
+  --spacing-fragment: 120px;
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic aliases.
+   ---------------------------------------------------------------------------
+   The shared UI primitives (Button, Card, Input, …) reference semantic names.
+   Mapping them onto the brand tokens above keeps those components consistent
+   with the new palette without touching every call site — and without
+   introducing any colour value that is not in the token list.
+
+   `--primary-strong` maps to navy, not a darker red, because `primary` is
+   reserved for CTAs. Text links therefore render navy.
+   --------------------------------------------------------------------------- */
+:root {
+  --radius: 14px;
+
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-ink);
+
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-surface);
+  --primary-strong: var(--color-navy);
+
+  --secondary: var(--color-navy);
+  --secondary-foreground: var(--color-surface);
+
+  --muted: var(--color-surface-muted);
+  --muted-foreground: var(--color-ink-muted);
+
+  --accent: var(--color-surface-muted);
+  --accent-foreground: var(--color-ink);
+
+  --destructive: var(--color-primary);
+  --destructive-foreground: var(--color-surface);
+
+  --success: var(--color-verified);
+  --success-foreground: var(--color-surface);
+
+  --warning: #b45309;
+  --warning-foreground: var(--color-surface);
+
+  --border: var(--color-surface-border);
+  --input: var(--color-surface-border);
+  --ring: var(--color-primary);
+
+  --section: var(--color-surface-muted);
+}
+
+/* Dark mode is not part of the specified design, and the theme toggle has
+   been removed (next-themes persists to localStorage, which the page rules
+   forbid). No `.dark` block: one light palette, defined once. */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-strong: var(--primary-strong);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-section: var(--section);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchor targets would otherwise land underneath the sticky header. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body text-body antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display face on every heading, per the type scale. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+    line-height: 1.15;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  :focus-visible {
+    @apply ring-ring ring-2 ring-offset-2 ring-offset-transparent outline-none;
+  }
+}
+
+/* Container: 1200px max width. */
+@utility container-page {
+  @apply mx-auto w-full max-w-page px-4 md:px-8;
+}
+
+/* Section rhythm: 48px mobile, 64px tablet, 96px desktop. */
+@utility section-y {
+  @apply py-12 md:py-16 lg:py-24;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll-in reveal — pure CSS scroll-driven animation, no JS.
+
+   Default state is fully visible, so browsers without `animation-timeline`
+   simply show content normally rather than blank. Disabled entirely under
+   prefers-reduced-motion.
+   --------------------------------------------------------------------------- */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}

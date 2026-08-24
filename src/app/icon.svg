@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="7" fill="#16274d" />
+  <!-- Brand coral accent -->
+  <path d="M16 6.5 24 9.5v3H8v-3Z" fill="#ff6652" />
+  <path
+    d="M16 6.5 24 9.5v6.2c0 4.9-3.2 8.6-8 10.3-4.8-1.7-8-5.4-8-10.3V9.5Z"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+  <path
+    d="m12 16.2 2.8 2.8L21 12.8"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

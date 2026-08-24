@@ -37,8 +37,34 @@ const securityHeaders = [
   },
 ]
 
+/**
+ * GitHub Pages serves static files only — no Node runtime. Setting
+ * STATIC_EXPORT=1 switches the build to a static export for that target.
+ *
+ * A project page is served from a sub-path (/<repo>), so basePath and
+ * assetPrefix have to match or every asset 404s. PAGES_BASE_PATH carries it.
+ *
+ * `headers()` and `poweredByHeader` are no-ops in an export: there is no
+ * server to send them, so the security headers in this file DO NOT apply to a
+ * Pages deployment. See docs/deployment.md.
+ */
+const isStaticExport = process.env.STATIC_EXPORT === '1'
+const basePath = process.env.PAGES_BASE_PATH ?? ''
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  ...(isStaticExport
+    ? {
+        output: 'export' as const,
+        basePath,
+        assetPrefix: basePath || undefined,
+        // Directory-style URLs so Pages resolves /about to /about/index.html.
+        trailingSlash: true,
+        // The Image optimiser needs a server; without this, <Image> 404s.
+        images: { unoptimized: true },
+      }
+    : {}),
 
   // Statically typed `<Link href>` and router calls. Stable in Next.js 16.
   typedRoutes: true,

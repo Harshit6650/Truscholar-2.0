@@ -45,7 +45,14 @@ jobs:
       - name: Disable Jekyll
         run: touch out/.nojekyll
 
+      # `enablement: true` switches Pages to the GitHub Actions source via the
+      # API, so this does not depend on someone flipping it in Settings first.
+      # Without it, this step fails on a repo still set to "Deploy from a
+      # branch" — which is what happened on the first run, and why the legacy
+      # Jekyll builder was serving the README instead of the site.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

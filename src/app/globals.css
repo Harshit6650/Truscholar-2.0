@@ -218,6 +218,43 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Rollout path (/solutions section 4).
+
+   One list, two layouts. Below lg it is the vertical timeline produced by the
+   utility classes on the element. At lg it becomes a horizontal path whose
+   column widths are PROPORTIONAL to each stage's real duration, carried in
+   --rollout-cols so the template can be data-driven without a second copy of
+   the markup.
+
+   The connector sits behind the numbered markers via a ::before, so the list
+   still contains only <li> children.
+   --------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .rollout-path {
+    display: grid;
+    grid-template-columns: var(--rollout-cols);
+    gap: 1rem;
+    margin-block-start: 4rem;
+    padding-inline-start: 0;
+    border-inline-start-width: 0;
+  }
+
+  .rollout-path > * + * {
+    margin-block-start: 0;
+  }
+
+  .rollout-path::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    /* Half the 2.5rem desktop marker, so the line meets their centres. */
+    top: 1.25rem;
+    height: 2px;
+    background-color: var(--color-surface-border);
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Scroll-in reveal — pure CSS scroll-driven animation, no JS.
 
    Default state is fully visible, so browsers without `animation-timeline`

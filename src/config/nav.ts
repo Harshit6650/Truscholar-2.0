@@ -15,6 +15,7 @@ export type SidebarItem = NavItem & {
 /** Public site navigation. */
 export const marketingNav: NavItem[] = [
   { title: 'Home', href: '/' },
+  { title: 'Solutions', href: '/solutions' },
   { title: 'About', href: '/about' },
   { title: 'Contact', href: '/contact' },
 ]
@@ -30,6 +31,7 @@ export const footerNav: { heading: string; items: NavItem[] }[] = [
     heading: 'Product',
     items: [
       { title: 'Overview', href: '/' },
+      { title: 'Solutions', href: '/solutions' },
       { title: 'About', href: '/about' },
     ],
   },

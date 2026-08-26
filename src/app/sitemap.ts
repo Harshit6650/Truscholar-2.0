@@ -14,6 +14,7 @@ const routes: {
   priority: number
 }[] = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
+  { path: '/solutions', changeFrequency: 'monthly', priority: 0.9 },
   { path: '/about', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/contact', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },

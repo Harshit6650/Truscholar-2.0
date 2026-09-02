@@ -9,6 +9,8 @@ import { FinalCta } from './_sections/final-cta'
 import { Hero } from './_sections/hero'
 import { Impact } from './_sections/impact'
 import { Journey } from './_sections/journey'
+import { ProductsOptionA } from './_sections/products-option-a'
+import { ProductsOptionB } from './_sections/products-option-b'
 import { Resources } from './_sections/resources'
 import { ReviewRatings } from './_sections/review-ratings'
 import { SecurityStandards } from './_sections/security-standards'
@@ -70,6 +72,14 @@ export default function HomePage() {
       <Hero />
       <TrustedBy />
       <Services />
+      {/*
+        Two competing product sections, built side by side for review.
+        Both REPLACE <Services /> above — all three carry the heading "The tools
+        behind every step", so the page deliberately repeats it while a choice
+        is made. Before ship: delete Services plus the losing option.
+      */}
+      <ProductsOptionA />
+      <ProductsOptionB />
       <Impact />
       <Journey />
       <WhoItsFor />

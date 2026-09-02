@@ -34,6 +34,18 @@
   --color-primary: #e2333a;
   --color-verified: #12a150;
 
+  /* Band accents for the Option B products section: blue / teal / coral,
+     applied to the icon and badge only, never a card background.
+     Each is a 100 stop (badge fill) and an 800 stop (badge + icon text).
+     Pale-on-pale is how this pattern usually fails, so every pair here is
+     chosen to clear 4.5:1 — verified in the browser, not assumed. */
+  --color-band-issuers-fill: #e8edf7;
+  --color-band-issuers-ink: #0b1b3f;
+  --color-band-learners-fill: #ddf1ed;
+  --color-band-learners-ink: #0a5148;
+  --color-band-corporates-fill: #fce8e9;
+  --color-band-corporates-ink: #97141a;
+
   /* Typography */
   --font-display: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -215,6 +227,42 @@
 /* Section rhythm: 48px mobile, 64px tablet, 96px desktop. */
 @utility section-y {
   @apply py-12 md:py-16 lg:py-24;
+}
+
+/* ---------------------------------------------------------------------------
+   Sticky product stack (homepage Option A).
+
+   Each card sticks a little lower than the one before it, so as the next card
+   scrolls up from below it covers the previous card's body and leaves only its
+   heading bar showing. Pure CSS sticky — no scroll listeners.
+
+   Two things break this, so watch for them:
+   - `overflow: hidden` (or `clip`) on ANY ancestor kills position: sticky.
+   - The cards must stay siblings in one flow container; wrapping any of them
+     in an extra element resets the stacking sequence.
+
+   Cards carry no `z-index`: as positioned siblings they already paint in DOM
+   order, and staying at `auto` keeps them beneath the site header (z-50).
+
+   Nine cards is a lot of accumulated offset — --stack-top + 8 * --stack-step,
+   about 420px by the last card. Keep card bodies compact: a card taller than
+   (viewport - its sticky top) extends below the fold while pinned. Lower
+   --product-step if that bites.
+   --------------------------------------------------------------------------- */
+.product-stack {
+  --product-top: 4.25rem;
+  --product-step: 2.75rem;
+}
+
+.product-card {
+  position: sticky;
+  top: calc(var(--product-top) + (var(--card-index) * var(--product-step)));
+}
+
+/* The strip that stays visible once covered. Its height must match
+   --product-step exactly, or headings clip or leave a gap. */
+.product-card-bar {
+  height: var(--product-step);
 }
 
 /* ---------------------------------------------------------------------------
